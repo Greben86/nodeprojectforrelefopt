@@ -29,7 +29,7 @@ function parsing(options) {
 		if (err)
 			throw err;
 
-		db.query('SELECT * FROM goods WHERE owner=60761 ORDER BY id ASC', function(err, result) {
+		db.query('SELECT * FROM goods WHERE owner=60761 ORDER BY id DESC', function(err, result) {
 			var array = new Array();
 			for (var i = 0; i < result.length; i++) {
 				var code1 = '';
@@ -63,6 +63,7 @@ function parsing(options) {
 			}
 			// закрываем соединение
 			db.detach;
+			//console.log(array[array.length-1].id);
 			// вызываем загрузчик
 			loader.search(array, 0, function (id, path) {
 				save(options, id, path);

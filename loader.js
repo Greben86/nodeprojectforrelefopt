@@ -13,16 +13,16 @@ var options = {
 	
 function search (array, index, save) {
 	if (array[index] === 'undefined') {
+		console.log("Finish");
 		return;
 	}	
 
 	var url = 'http://relefopt.ru/search?q=' + array[index].code;
 
 	needle.get(url, options, function(error, response){
+		console.log('');
+		console.log((index + 1) + '/' + array.length + ' [' + array[index].id + '] ' + array[index].name);
 		if (!error) {
-			console.log('');
-			console.log('[' + array[index].id + '] ' + array[index].name);
-
 			var $=cheerio.load(response.body);
 			
 			var img_src = $('#content > div:nth-child(2) > div.shadow-box.item-holder > div.center.rc-item.rc-template_mark_list > div > div > div.item-block > div.item-gallery > div.visual > div > img').attr("src");
@@ -31,23 +31,22 @@ function search (array, index, save) {
 				console.log("Not search: " + array[index].code + ". Status code: "+response.statusCode);
 				search(array, index+1, save);
 			} else {
-				var path = "download/" + array[index].id + img_src.substring(img_src.lastIndexOf('.'), img_src.length);
+				var file = "download/" + array[index].id + img_src.substring(img_src.lastIndexOf('.'), img_src.length);
 				var img_url = "http://relefopt.ru"+img_src;		
 			
-				fs.exists(path, function (exists) {
+				fs.exists(file, function (exists) {
 					if (!exists) {
-						var file = fs.createWriteStream(path);
-						var request = http.get(img_url, function (res) {
-							res.pipe(file);
-							file.on('finish', function() {
-								file.close();
+						needle.get(img_url, {output: file}, function(err, resp, body) {
+						  	if (!err) {
 								console.log(array[index].code + ' -> load image is Ok');								
-								save(array[index].id, path);
-								search(array, index+1, save);
-							});							
+								save(array[index].id, file);
+						  	} else {
+								console.log("Error load file: " + err);
+							}
+						  	search(array, index+1, save);
 						});						
 					} else {
-						console.log("Exist file: " + path);
+						console.log("Exist file: " + file);
 						search(array, index+1, save);
 					}		
 				});
